@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a1628" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Make" />
+  <title>Make Yourself</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png" />
+  <link rel="stylesheet" href="/static/css/app.css" />
+</head>
+<body>
+
+<!-- ── Install banner ────────────────────────────────────────────────────── -->
+<div id="install-banner" class="install-banner hidden">
+  <span class="install-text">Add to Home Screen</span>
+  <div class="install-actions">
+    <button class="btn btn-sm btn-primary" onclick="triggerInstall()" style="width:auto;">Install</button>
+    <button class="btn btn-sm btn-ghost" onclick="dismissInstall()" style="width:auto;padding:0 10px;">✕</button>
+  </div>
+</div>
+
+<!-- ── Toast ─────────────────────────────────────────────────────────────── -->
+<div id="toast"></div>
+
+<!-- ── Mode Pill Switcher ─────────────────────────────────────────────────── -->
+<div id="mode-switcher">
+  <button id="mode-home" class="mode-pill active-pill" onclick="setMode('home')">HOME</button>
+  <button id="mode-work" class="mode-pill" onclick="setMode('work')">WORK</button>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SCREEN: HOME  (Quick Log)
+     ════════════════════════════════════════════════════════════════════════ -->
+<div id="screen-home" class="screen active">
+  <div class="home-header">
+    <div class="home-title">Make Yourself</div>
+    <div class="home-subtitle">Tap once. Log the moment.</div>
+  </div>
+
+  <div class="tap-stack">
+    <button class="tap-btn tap-tobacco" onclick="quickLog('tobacco')">
+      <span class="tap-emoji">🚬</span>
+      <span class="tap-label">Tobacco</span>
+    </button>
+    <button class="tap-btn tap-weed" onclick="quickLog('weed')">
+      <span class="tap-emoji">🌿</span>
+      <span class="tap-label">Weed</span>
+    </button>
+    <button class="tap-btn tap-drink" onclick="quickLog('drink')">
+      <span class="tap-emoji">🍺</span>
+      <span class="tap-label">Drink</span>
+    </button>
+  </div>
+
+  <div class="card" style="margin-top:4px;">
+    <h3 style="margin-bottom:12px;">Today</h3>
+    <div class="today-counts">
+      <div class="count-cell">
+        <div id="count-tobacco" class="count-num">0</div>
+        <div class="count-lbl">tobacco</div>
+      </div>
+      <div class="count-cell">
+        <div id="count-weed" class="count-num">0</div>
+        <div class="count-lbl">weed</div>
+      </div>
+      <div class="count-cell">
+        <div id="count-drink" class="count-num">0</div>
+        <div class="count-lbl">drinks</div>
+      </div>
+    </div>
+    <div id="last-logged" class="last-logged"></div>
+  </div>
+
+  <div class="home-tools-label">HOME TOOLS</div>
+  <div class="tools-grid">
+    <button class="tool-card" onclick="nav('money')">
+      <span class="tool-emoji">💰</span>
+      <span class="tool-name">Money / Fund</span>
+    </button>
+    <button class="tool-card" onclick="nav('travel')">
+      <span class="tool-emoji">✈️</span>
+      <span class="tool-name">Travel</span>
+    </button>
+    <button class="tool-card" onclick="nav('movement')">
+      <span class="tool-emoji">🏃</span>
+      <span class="tool-name">Movement</span>
+    </button>
+    <button class="tool-card" onclick="nav('vehicle')">
+      <span class="tool-emoji">🚗</span>
+      <span class="tool-name">Truck</span>
+    </button>
+    <button class="tool-card" onclick="nav('subs')">
+      <span class="tool-emoji">🧾</span>
+      <span class="tool-name">Subscriptions</span>
+    </button>
+    <button class="tool-card" onclick="nav('dashboard')">
+      <span class="tool-emoji">📊</span>
+      <span class="tool-name">Dashboard</span>
+    </button>
+  </div>
+</div><!-- /screen-home -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SCREEN: DAILY LOG
+     ════════════════════════════════════════════════════════════════════════ -->
+<div id="screen-log" class="screen">
+  <div class="page-title">
+    <h1>Daily Log</h1>
+    <small id="log-date-label"></small>
+  </div>
+
+  <!-- Score ring preview -->
+  <div class="card" style="text-align:center;padding:20px 16px 16px;">
+    <svg class="score-ring" viewBox="0 0 100 100">
+      <circle class="track" cx="50" cy="50" r="42"/>
+      <circle class="fill"  cx="50" cy="50" r="42"
+        transform="rotate(-90 50 50)"
+        style="stroke-dasharray:263.9;stroke-dashoffset:263.9;"/>
+    </svg>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:8px;">TODAY'S SCORE</div>
+    <div style="font-size:40px;font-weight:800;line-height:1;margin-bottom:2px;">
+      <span id="live-score">0</span><span style="font-size:20px;color:var(--text2)">/6</span>
+    </div>
+    <div class="grid-2 mt8" style="max-width:200px;margin-left:auto;margin-right:auto;">
+      <div class="stat">
+        <div id="live-money" class="val green">+$0.00</div>
+        <div class="lbl">reclaimed</div>
+      </div>
+      <div class="stat">
+        <div id="live-xp" class="val" style="font-size:18px;">+50 XP</div>
+        <div class="lbl">earned</div>
+      </div>
+    </div>
+  </div>
+
+  <form id="log-form">
+    <!-- Tobacco blocks -->
+    <div class="card card-sm auto-block-card">
+      <div class="flex-between" style="margin-bottom:10px;">
+        <h3>Tobacco</h3>
+        <span class="auto-badge">AUTO</span>
+      </div>
+      <div class="block-grid">
+        <div class="block-label">AM</div>
+        <div></div>
+        <button type="button" id="t-am"  class="toggle-btn active-no">NO</button>
+      </div>
+      <div class="block-grid">
+        <div class="block-label">PM</div>
+        <div></div>
+        <button type="button" id="t-pm"  class="toggle-btn active-no">NO</button>
+      </div>
+      <div class="block-grid">
+        <div class="block-label">EVE</div>
+        <div></div>
+        <button type="button" id="t-eve" class="toggle-btn active-no">NO</button>
+      </div>
+      <div class="auto-hint">Tap Quick Log to update · tap blocks to override</div>
+    </div>
+
+    <!-- Weed blocks -->
+    <div class="card card-sm auto-block-card">
+      <div class="flex-between" style="margin-bottom:10px;">
+        <h3>Weed</h3>
+        <span class="auto-badge">AUTO</span>
+      </div>
+
+      <div style="margin-bottom:8px;">
+        <div class="block-label" style="text-align:left;margin-bottom:4px;">AM</div>
+        <div class="toggle-group w-group" id="w-group-am" data-block="am">
+          <button type="button" class="toggle-btn active-none" data-val="0">NONE</button>
+          <button type="button" class="toggle-btn"             data-val="1">LIGHT</button>
+          <button type="button" class="toggle-btn"             data-val="2">MOD</button>
+          <button type="button" class="toggle-btn"             data-val="3">HEAVY</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:8px;">
+        <div class="block-label" style="text-align:left;margin-bottom:4px;">PM</div>
+        <div class="toggle-group w-group" id="w-group-pm" data-block="pm">
+          <button type="button" class="toggle-btn active-none" data-val="0">NONE</button>
+          <button type="button" class="toggle-btn"             data-val="1">LIGHT</button>
+          <button type="button" class="toggle-btn"             data-val="2">MOD</button>
+          <button type="button" class="toggle-btn"             data-val="3">HEAVY</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="block-label" style="text-align:left;margin-bottom:4px;">EVE</div>
+        <div class="toggle-group w-group" id="w-group-eve" data-block="eve">
+          <button type="button" class="toggle-btn active-none" data-val="0">NONE</button>
+          <button type="button" class="toggle-btn"             data-val="1">LIGHT</button>
+          <button type="button" class="toggle-btn"             data-val="2">MOD</button>
+          <button type="button" class="toggle-btn"             data-val="3">HEAVY</button>
+        </div>
+      </div>
+      <div class="auto-hint">Tap Quick Log to update · tap blocks to override</div>
+    </div>
+
+    <!-- Today's timeline -->
+    <div class="card card-sm">
+      <h3 style="margin-bottom:10px;">Today's Timeline</h3>
+      <div id="habit-timeline"><div class="empty" style="padding:8px 0;">No logs today</div></div>
+    </div>
+
+    <!-- Intention -->
+    <div class="card card-sm">
+      <div class="field mb0">
+        <label for="intention">What does the Macer do today?</label>
+        <textarea id="intention" placeholder="One sentence intention…" rows="2"></textarea>
+      </div>
+    </div>
+
+    <!-- Note -->
+    <div class="card card-sm">
+      <div class="field mb0">
+        <label for="log-note">Notes (optional)</label>
+        <textarea id="log-note" placeholder="Anything worth remembering…" rows="2"></textarea>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt8" id="log-submit">Save Day</button>
+  </form>
+</div><!-- /screen-log -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SCREEN: DASHBOARD
+     ════════════════════════════════════════════════════════════════════════ -->
+<div id="screen-dashboard" class="screen">
+  <div class="page-title">
+    <h1>Dashboard</h1>
+    <small id="dash-name"></small>
+  </div>
+
+  <!-- Today's score hero -->
+  <div class="card" style="text-align:center;padding:20px;">
+    <div class="text-muted text-sm" style="margin-bottom:4px;">TODAY</div>
+    <div id="dash-today-score" class="val big">–</div>
+    <div class="text-muted text-sm" style="margin-top:2px;">out of 6</div>
+    <div class="grid-2 mt12">
+      <div class="stat">
+        <div id="dash-today-money" class="val green text-sm bold">–</div>
+        <div class="lbl">reclaimed</div>
+      </div>
+      <div class="stat">
+        <div id="dash-today-xp" class="val text-sm bold">–</div>
+        <div class="lbl">XP earned</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Streaks -->
+  <div class="grid-2">
+    <div class="card stat">
+      <div id="dash-streak" class="val">0</div>
+      <div class="lbl">Current Streak</div>
+    </div>
+    <div class="card stat">
+      <div id="dash-best-streak" class="val">0</div>
+      <div class="lbl">Best Streak</div>
+    </div>
+  </div>
+
+  <!-- Freedom Fund + Debt Boss -->
+  <div class="card">
+    <div class="flex-between" style="margin-bottom:12px;">
+      <h2 class="mb0">Freedom Fund</h2>
+      <span id="dash-ff" class="bold text-green" style="font-size:18px;">$0.00</span>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar">
+        <div class="progress-fill" id="debt-fill" style="width:0%"></div>
+      </div>
+      <div class="progress-label">
+        <span id="debt-target-label">$0 / $4,500</span>
+        <span id="debt-pct-label">0%</span>
+      </div>
+    </div>
+    <div class="text-muted text-sm mt8">
+      Debt settlement target · <span id="dash-months-left" class="text-accent">–</span>
+    </div>
+  </div>
+
+  <!-- Weekly -->
+  <div class="card">
+    <h3 style="margin-bottom:10px;">This Week</h3>
+    <div class="grid-2">
+      <div class="stat">
+        <div id="dash-week-avg" class="val" style="font-size:24px;">–</div>
+        <div class="lbl">Avg Score</div>
+      </div>
+      <div class="stat">
+        <div id="dash-week-xp" class="val" style="font-size:24px;">–</div>
+        <div class="lbl">XP</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monthly savings breakdown -->
+  <div class="card">
+    <h3 style="margin-bottom:10px;">Last 30 Days</h3>
+    <div class="grid-3">
+      <div class="stat">
+        <div id="dash-month-tobacco" class="val" style="font-size:18px;">$0</div>
+        <div class="lbl">Tobacco</div>
+      </div>
+      <div class="stat">
+        <div id="dash-month-weed" class="val" style="font-size:18px;">$0</div>
+        <div class="lbl">Weed</div>
+      </div>
+      <div class="stat">
+        <div id="dash-month-total" class="val green" style="font-size:18px;">$0</div>
+        <div class="lbl">Total</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- All-time -->
+  <div class="card">
+    <h3 style="margin-bottom:10px;">All Time</h3>
+    <div class="grid-3">
+      <div class="stat">
+        <div id="dash-all-money" class="val green" style="font-size:18px;">$0</div>
+        <div class="lbl">Reclaimed</div>
+      </div>
+      <div class="stat">
+        <div id="dash-all-xp" class="val" style="font-size:18px;">0</div>
+        <div class="lbl">XP</div>
+      </div>
+      <div class="stat">
+        <div id="dash-all-days" class="val" style="font-size:18px;">0</div>
+        <div class="lbl">Days Logged</div>
+      </div>
+    </div>
+  </div>
+</div><!-- /screen-dashboard -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SCREEN: FREEDOM FUND
+     ════════════════════════════════════════════════════════════════════════ -->
+<div id="screen-fund" class="screen">
+  <div class="page-title">
+    <h1>Freedom Fund</h1>
+  </div>
+
+  <div class="card" style="text-align:center;padding:20px;">
+    <div class="text-muted text-sm">TOTAL SAVED</div>
+    <div id="ff-total" class="val big green" style="font-size:44px;margin-top:4px;">$0.00</div>
+  </div>
+
+  <!-- Add entry form -->
+  <div class="card">
+    <h2>Add Entry</h2>
+    <form id="ff-form">
+      <div class="field">
+        <label>Date</label>
+        <input type="date" id="ff-date" required />
+      </div>
+      <div class="field">
+        <label>Source</label>
+        <input type="text" id="ff-source" placeholder="e.g. Tobacco savings, Side hustle…" required />
+      </div>
+      <div class="field">
+        <label>Amount ($)</label>
+        <input type="number" id="ff-amount" placeholder="0.00" step="0.01" min="0.01" required />
+      </div>
+      <div class="field">
+        <label>Notes (optional)</label>
+        <input type="text" id="ff-notes" placeholder="Optional note" />
+      </div>
+      <button type="submit" class="btn btn-primary">Add to Fund</button>
+    </form>
+  </div>
+
+  <!-- Entry list -->
+  <div class="card">
+    <h2>History</h2>
+    <div id="ff-list"><div class="empty">No entries yet.</div></div>
+  </div>
+</div><!-- /screen-fund -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SCREEN: DEBT BOSS
+     ════════════════════════════════════════════════════════════════════════ -->
+<div id="screen-debt" class="screen">
+  <div class="page-title">
+    <h1>Debt Boss</h1>
+  </div>
+
+  <div class="card" style="text-align:center;padding:24px 16px;">
+    <div class="text-muted text-sm">TOTAL DEBT</div>
+    <div id="debt-full-total" class="val" style="font-size:36px;color:var(--red);margin:4px 0 16px;">$13,913</div>
+
+    <div class="progress-wrap" style="text-align:left;">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:6px;">SETTLEMENT PROGRESS</div>
+      <div class="progress-bar" style="height:14px;">
+        <div class="progress-fill" id="debt-full-fill" style="width:0%"></div>
+      </div>
+      <div class="progress-label">
+        <span id="debt-full-saved">$0.00</span>
+        <span id="debt-full-pct">0%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card stat">
+      <div id="debt-full-target" class="val green" style="font-size:22px;">$4,500</div>
+      <div class="lbl">Settlement Target</div>
+    </div>
+    <div class="card stat">
+      <div id="debt-full-remaining" class="val yellow" style="font-size:22px;">–</div>
+      <div class="lbl">Still Needed</div>
+    </div>
+  </div>
+
+  <div class="card stat">
+    <div id="debt-full-months" class="val" style="font-size:22px;">–</div>
+    <div class="lbl">Estimated Months to Target</div>
+    <div class="text-muted text-sm mt8">Based on your average monthly Freedom Fund contributions</div>
+  </div>
+
+  <div class="card" style="padding:14px 16px;">
+    <div class="text-muted text-sm" style="line-height:1.6;">
+      Keep adding to your Freedom Fund — every dollar brings the Debt Boss closer to dead.
+      The estimate above updates automatically as your savings grow.
+    </div>
+  </div>
+</div><!-- /screen-debt -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SCREEN: SUBSCRIPTIONS
+     ════════════════════════════════════════════════════════════════════════ -->
+<div id="screen-subs" class="screen">
+  <div class="page-title">
+    <h1>Sub Killer</h1>
+  </div>
+
+  <div class="grid-2">
+    <div class="card stat">
+      <div id="subs-spend" class="val text-red" style="font-size:20px;">$0/mo</div>
+      <div class="lbl">Current Spend</div>
+    </div>
+    <div class="card stat">
+      <div id="subs-savings" class="val green" style="font-size:20px;">$0/mo</div>
+      <div class="lbl">If You Kill All</div>
+    </div>
+  </div>
+
+  <!-- Add/edit form -->
+  <div class="card">
+    <h2>Add Subscription</h2>
+    <form id="sub-form">
+      <div class="field">
+        <label>Service name</label>
+        <input type="text" id="sub-service" placeholder="Netflix, Spotify…" required />
+      </div>
+      <div class="field">
+        <label>Monthly cost ($)</label>
+        <input type="number" id="sub-cost" placeholder="0.00" step="0.01" min="0" required />
+      </div>
+      <div class="field">
+        <label>Last used (optional)</label>
+        <input type="date" id="sub-last" />
+      </div>
+      <div class="field" style="display:flex;align-items:center;gap:10px;">
+        <input type="checkbox" id="sub-kill" style="width:20px;height:20px;accent-color:var(--red);" />
+        <label for="sub-kill" style="margin:0;color:var(--text);">Kill it?</label>
+      </div>
+      <div class="field">
+        <label>Notes (optional)</label>
+        <input type="text" id="sub-notes" placeholder="Why keep or kill?" />
+      </div>
+      <button type="submit" class="btn btn-primary" id="sub-submit">Add Subscription</button>
+    </form>
+  </div>
+
+  <!-- List -->
+  <div class="card">
+    <h2>Subscriptions</h2>
+    <div id="subs-list"><div class="empty">No subscriptions tracked yet.</div></div>
+  </div>
+</div><!-- /screen-subs -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SCREEN: MOVEMENT
+     ════════════════════════════════════════════════════════════════════════ -->
+<div id="screen-movement" class="screen">
+  <div class="page-title">
+    <h1>Movement</h1>
+    <small id="move-xp-earned"></small>
+  </div>
+
+  <!-- Mini dashboard -->
+  <div class="grid-3">
+    <div class="card stat">
+      <div id="move-week-km" class="val" style="font-size:22px;">0</div>
+      <div class="lbl">km this week</div>
+    </div>
+    <div class="card stat">
+      <div id="move-week-runs" class="val" style="font-size:22px;">0</div>
+      <div class="lbl">runs this week</div>
+    </div>
+    <div class="card stat">
+      <div id="move-total-runs" class="val" style="font-size:22px;">0</div>
+      <div class="lbl">total logged</div>
+    </div>
+  </div>
+
+  <!-- Last run summary -->
+  <div class="card" id="move-last-card">
+    <h3 style="margin-bottom:10px;">Last Run</h3>
+    <div id="move-last-run" class="text-muted text-sm">No runs logged yet.</div>
+  </div>
+
+  <!-- Quick-log form -->
+  <div class="card">
+    <h2>Log Workout</h2>
+    <form id="workout-form">
+      <div class="grid-2" style="gap:10px;margin-bottom:14px;">
+        <div class="field mb0">
+          <label>Date</label>
+          <input type="date" id="w-date" required />
+        </div>
+        <div class="field mb0">
+          <label>Type</label>
+          <select id="w-type">
+            <option value="Run">Run</option>
+            <option value="Walk">Walk</option>
+            <option value="Ride">Ride</option>
+            <option value="Swim">Swim</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid-2" style="gap:10px;margin-bottom:14px;">
+        <div class="field mb0">
+          <label>Distance (km)</label>
+          <input type="number" id="w-distance" placeholder="0.0" step="0.1" min="0" inputmode="decimal" />
+        </div>
+        <div class="field mb0">
+          <label>Duration (min)</label>
+          <input type="number" id="w-duration" placeholder="0" step="1" min="0" inputmode="numeric" />
+        </div>
+      </div>
+      <div class="grid-2" style="gap:10px;margin-bottom:14px;">
+        <div class="field mb0">
+          <label>Avg HR (bpm)</label>
+          <input type="number" id="w-hr" placeholder="–" step="1" min="0" inputmode="numeric" />
+        </div>
+        <div class="field mb0">
+          <label>Calories</label>
+          <input type="number" id="w-calories" placeholder="–" step="1" min="0" inputmode="numeric" />
+        </div>
+      </div>
+      <div class="field">
+        <label>Notes (optional)</label>
+        <input type="text" id="w-notes" placeholder="How'd it go?" />
+      </div>
+      <button type="submit" class="btn btn-primary" id="workout-submit">Log Workout</button>
+    </form>
+  </div>
+
+  <!-- History -->
+  <div class="card">
+    <h2>History</h2>
+    <div id="workout-list"><div class="empty">No workouts logged yet.</div></div>
+  </div>
+</div><!-- /screen-movement -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SCREEN: SPENDING
+     ════════════════════════════════════════════════════════════════════════ -->
+<div id="screen-spending" class="screen">
+  <div class="page-title">
+    <h1>Spending</h1>
+    <small>awareness only</small>
+  </div>
+
+  <!-- Dashboard stats -->
+  <div class="grid-2">
+    <div class="card stat">
+      <div id="spend-today" class="val text-red" style="font-size:22px;">$0</div>
+      <div class="lbl">Today</div>
+    </div>
+    <div class="card stat">
+      <div id="spend-week" class="val text-red" style="font-size:22px;">$0</div>
+      <div class="lbl">This Week</div>
+    </div>
+  </div>
+
+  <!-- Last 5 -->
+  <div class="card">
+    <h3 style="margin-bottom:10px;">Recent</h3>
+    <div id="spend-recent"><div class="empty">No transactions yet.</div></div>
+  </div>
+
+  <!-- Quick-add form -->
+  <div class="card">
+    <h2>Add Transaction</h2>
+    <form id="spend-form">
+      <div class="grid-2" style="gap:10px;margin-bottom:14px;">
+        <div class="field mb0">
+          <label>Merchant <span style="color:var(--red)">*</span></label>
+          <input type="text" id="sp-merchant" placeholder="Where?" required
+                 inputmode="text" autocomplete="off" />
+        </div>
+        <div class="field mb0">
+          <label>Amount ($) <span style="color:var(--red)">*</span></label>
+          <input type="number" id="sp-amount" placeholder="0.00"
+                 step="0.01" min="0.01" required inputmode="decimal" />
+        </div>
+      </div>
+      <div class="field">
+        <label>Category</label>
+        <select id="sp-category">
+          <option value="Food">Food</option>
+          <option value="Gas">Gas</option>
+          <option value="Wawa">Wawa</option>
+          <option value="Subscription">Subscription</option>
+          <option value="Random" selected>Random</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Notes (optional)</label>
+        <input type="text" id="sp-notes" placeholder="Optional note" />
+      </div>
+      <button type="submit" class="btn btn-primary" id="spend-submit">Add Transaction</button>
+    </form>
+  </div>
+
+  <!-- Full history -->
+  <div class="card">
+    <h2>All History</h2>
+    <div id="spend-list"><div class="empty">No transactions yet.</div></div>
+  </div>
+</div><!-- /screen-spending -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SCREEN: SETTINGS
+     ════════════════════════════════════════════════════════════════════════ -->
+<div id="screen-settings" class="screen">
+  <div class="page-title"><h1>Settings</h1></div>
+
+  <form id="settings-form">
+    <div class="settings-group">
+      <h3>Profile</h3>
+      <div class="card card-sm">
+        <div class="field mb0">
+          <label>Your name</label>
+          <input type="text" id="s-user_name" data-key="user_name" placeholder="Macer" />
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <h3>Scoring Values</h3>
+      <div class="card card-sm">
+        <div class="field">
+          <label>Tobacco NO saves ($ per block)</label>
+          <input type="number" id="s-tobacco_block_save" data-key="tobacco_block_save" step="0.01" />
+        </div>
+        <div class="field">
+          <label>Weed NONE saves ($)</label>
+          <input type="number" id="s-weed_none_save" data-key="weed_none_save" step="0.01" />
+        </div>
+        <div class="field">
+          <label>Weed LIGHT saves ($)</label>
+          <input type="number" id="s-weed_light_save" data-key="weed_light_save" step="0.01" />
+        </div>
+        <div class="field">
+          <label>Weed MOD saves ($)</label>
+          <input type="number" id="s-weed_mod_save" data-key="weed_mod_save" step="0.01" />
+        </div>
+        <div class="field mb0">
+          <label>Weed HEAVY saves ($, can be negative)</label>
+          <input type="number" id="s-weed_heavy_save" data-key="weed_heavy_save" step="0.01" />
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <h3>XP Formula</h3>
+      <div class="card card-sm">
+        <div class="field">
+          <label>Base XP per day</label>
+          <input type="number" id="s-xp_base" data-key="xp_base" />
+        </div>
+        <div class="field">
+          <label>XP per score point</label>
+          <input type="number" id="s-xp_per_score" data-key="xp_per_score" />
+        </div>
+        <div class="field mb0">
+          <label>Perfect score bonus XP</label>
+          <input type="number" id="s-xp_perfect_bonus" data-key="xp_perfect_bonus" />
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <h3>Debt Boss</h3>
+      <div class="card card-sm">
+        <div class="field">
+          <label>Total debt ($)</label>
+          <input type="number" id="s-debt_total" data-key="debt_total" step="0.01" />
+        </div>
+        <div class="field mb0">
+          <label>Settlement target ($)</label>
+          <input type="number" id="s-debt_target" data-key="debt_target" step="0.01" />
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <h3>Streak</h3>
+      <div class="card card-sm">
+        <div class="field mb0">
+          <label>Minimum score to count toward streak</label>
+          <input type="number" id="s-streak_min_score" data-key="streak_min_score" min="0" max="6" />
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save Settings</button>
+  </form>
+
+  <hr />
+
+  <div class="settings-group">
+    <h3>Cloudflare Tunnel Setup</h3>
+    <div class="card card-sm">
+      <div class="text-sm" style="line-height:1.7;color:var(--text2);">
+        <p style="margin-bottom:10px;">To access this app on your iPhone from home:</p>
+        <ol style="padding-left:18px;display:flex;flex-direction:column;gap:8px;">
+          <li>Install cloudflared: <code style="background:var(--bg3);padding:2px 6px;border-radius:4px;color:var(--text);">brew install cloudflared</code></li>
+          <li>Login: <code style="background:var(--bg3);padding:2px 6px;border-radius:4px;color:var(--text);">cloudflared tunnel login</code></li>
+          <li>Create tunnel: <code style="background:var(--bg3);padding:2px 6px;border-radius:4px;color:var(--text);">cloudflared tunnel create reclaim</code></li>
+          <li>Run: <code style="background:var(--bg3);padding:2px 6px;border-radius:4px;color:var(--text);">cloudflared tunnel --url http://localhost:5050 run reclaim</code></li>
+          <li>Open the generated URL on your iPhone and tap <strong>Share → Add to Home Screen</strong></li>
+        </ol>
+        <p style="margin-top:10px;">For home network only (no tunnel), just visit <code style="background:var(--bg3);padding:2px 6px;border-radius:4px;color:var(--text);">http://&lt;your-mac-ip&gt;:5050</code> on your phone while on Wi-Fi.</p>
+      </div>
+    </div>
+  </div>
+</div><!-- /screen-settings -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SCREEN: WORK CAPTURE
+     ════════════════════════════════════════════════════════════════════════ -->
+<div id="screen-capture" class="screen">
+  <div class="page-title">
+    <h1>Work Log</h1>
+    <span id="wc-streak-display" class="wc-streak"></span>
+  </div>
+
+  <!-- Draft restore banner -->
+  <div id="wc-draft-banner" class="wc-draft-banner hidden">
+    <span>📝 Draft saved</span>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-sm btn-ghost" onclick="restoreWcDraft()" style="width:auto;">Restore</button>
+      <button class="btn btn-sm btn-ghost" onclick="clearWcDraft()" style="width:auto;">✕</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <!-- Date -->
+    <div class="field">
+      <label>Date</label>
+      <input type="date" id="wc-date" />
+    </div>
+
+    <!-- Category -->
+    <div>
+      <label style="margin-bottom:0;">Category <span style="color:var(--red)">*</span></label>
+      <div id="wc-orbits" class="orbit-pills"></div>
+      <div id="wc-subs" class="sub-chips" style="display:none;"></div>
+    </div>
+
+    <!-- Note -->
+    <div class="field" style="margin-top:14px;">
+      <label>Note <span style="color:var(--red)">*</span></label>
+      <textarea id="wc-note" placeholder="What happened? What did you make? What matters?" rows="4"></textarea>
+    </div>
+
+    <!-- Advanced toggle -->
+    <div class="flex-between" onclick="toggleWcAdvanced()" style="cursor:pointer;padding:6px 0;border-top:1px solid var(--border);margin-top:4px;">
+      <span class="text-muted text-sm">Advanced options</span>
+      <span id="wc-adv-icon" style="color:var(--text2);font-size:16px;">▸</span>
+    </div>
+
+    <div id="wc-advanced" class="hidden">
+      <!-- Priority -->
+      <div class="wc-section-label">Priority</div>
+      <div class="wc-selector-row" id="wc-priority-row">
+        <button type="button" class="wc-sel-btn" data-field="priority" data-val="🔴 High" onclick="wcSelect('priority','🔴 High',this)">🔴 High</button>
+        <button type="button" class="wc-sel-btn" data-field="priority" data-val="🟡 Medium" onclick="wcSelect('priority','🟡 Medium',this)">🟡 Medium</button>
+        <button type="button" class="wc-sel-btn" data-field="priority" data-val="🟢 Low" onclick="wcSelect('priority','🟢 Low',this)">🟢 Low</button>
+      </div>
+
+      <!-- Mood -->
+      <div class="wc-section-label">Mood</div>
+      <div class="wc-selector-row" id="wc-mood-row">
+        <button type="button" class="wc-sel-btn" onclick="wcSelect('mood','🔥 Fired up',this)">🔥 Fired up</button>
+        <button type="button" class="wc-sel-btn" onclick="wcSelect('mood','😎 Locked in',this)">😎 Locked in</button>
+        <button type="button" class="wc-sel-btn" onclick="wcSelect('mood','🚀 In flow',this)">🚀 In flow</button>
+        <button type="button" class="wc-sel-btn" onclick="wcSelect('mood','😌 Steady',this)">😌 Steady</button>
+        <button type="button" class="wc-sel-btn" onclick="wcSelect('mood','🤔 Thinking',this)">🤔 Thinking</button>
+        <button type="button" class="wc-sel-btn" onclick="wcSelect('mood','😤 Frustrated',this)">😤 Frustrated</button>
+        <button type="button" class="wc-sel-btn" onclick="wcSelect('mood','😴 Drained',this)">😴 Drained</button>
+        <button type="button" class="wc-sel-btn" onclick="wcSelect('mood','😵 Overwhelmed',this)">😵 Overwhelmed</button>
+      </div>
+
+      <!-- Reflection type -->
+      <div class="wc-section-label">Type</div>
+      <div class="wc-selector-row" id="wc-refl-row">
+        <button type="button" class="wc-sel-btn" onclick="wcSelect('reflType','✅ Win',this)">✅ Win</button>
+        <button type="button" class="wc-sel-btn" onclick="wcSelect('reflType','🔧 Growth',this)">🔧 Growth</button>
+        <button type="button" class="wc-sel-btn" onclick="wcSelect('reflType','💡 Idea',this)">💡 Idea</button>
+        <button type="button" class="wc-sel-btn" onclick="wcSelect('reflType','⚠️ Problem',this)">⚠️ Problem</button>
+        <button type="button" class="wc-sel-btn" onclick="wcSelect('reflType','📋 Evidence',this)">📋 Evidence</button>
+        <button type="button" class="wc-sel-btn" onclick="wcSelect('reflType','🔁 Follow-Up',this)">🔁 Follow-Up</button>
+      </div>
+
+      <!-- SOW tags -->
+      <div class="wc-section-label">Statement of Work</div>
+      <div id="wc-sow-row" class="wc-selector-row"></div>
+
+      <!-- Sliders -->
+      <div class="wc-section-label">Energy / Progress / Load</div>
+      <div class="wc-slider-group">
+        <div class="wc-slider-label"><span>Energy</span><span id="wc-energy-val" class="wc-slider-val">5</span></div>
+        <input type="range" id="wc-energy" min="1" max="10" value="5" oninput="document.getElementById('wc-energy-val').textContent=this.value;wcSaveDraft()" />
+      </div>
+      <div class="wc-slider-group">
+        <div class="wc-slider-label"><span>Progress</span><span id="wc-progress-val" class="wc-slider-val">5</span></div>
+        <input type="range" id="wc-progress" min="1" max="10" value="5" oninput="document.getElementById('wc-progress-val').textContent=this.value;wcSaveDraft()" />
+      </div>
+      <div class="wc-slider-group">
+        <div class="wc-slider-label"><span>Load / Complexity</span><span id="wc-load-val" class="wc-slider-val">5</span></div>
+        <input type="range" id="wc-load" min="1" max="10" value="5" oninput="document.getElementById('wc-load-val').textContent=this.value;wcSaveDraft()" />
+      </div>
+
+      <!-- People tags -->
+      <div class="wc-section-label">People / Projects / Tags</div>
+      <div id="wc-people-wrap" class="people-input-wrap" onclick="document.getElementById('wc-people-input').focus()">
+        <input type="text" id="wc-people-input" class="people-text-input"
+               placeholder="Type name or tag, press Enter…"
+               autocomplete="off" autocorrect="off" />
+      </div>
+      <div class="wc-section-label" style="margin-top:8px;">Suggestions</div>
+      <div id="wc-people-suggestions" class="sub-chips"></div>
+    </div>
+
+    <button id="wc-submit" class="btn btn-primary mt8" onclick="submitWorkCapture()">Log It →</button>
+  </div>
+
+  <!-- Session log (shown after first capture) -->
+  <div id="wc-session-card" class="card" style="display:none;">
+    <h3 style="margin-bottom:10px;">This Session</h3>
+    <div id="wc-session-list"></div>
+  </div>
+</div><!-- /screen-capture -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SCREEN: VEHICLE (SILVERADO)
+     ════════════════════════════════════════════════════════════════════════ -->
+<div id="screen-vehicle" class="screen">
+  <div class="page-title">
+    <h1>Silverado</h1>
+    <small>2005 Chevy</small>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="checklist" onclick="switchVehicleTab('checklist')">Checklist</button>
+    <button class="tab-btn" data-tab="vitals" onclick="switchVehicleTab('vitals')">Vitals</button>
+    <button class="tab-btn" data-tab="maintenance" onclick="switchVehicleTab('maintenance')">Maintenance</button>
+  </div>
+
+  <!-- Tab: Checklist -->
+  <div id="vtab-checklist" class="vtab active">
+    <div id="checklist-p1" class="checklist-section">
+      <div class="checklist-header priority-1">🟥 DO ASAP</div>
+      <div id="checklist-list-1"></div>
+    </div>
+    <div id="checklist-p2" class="checklist-section">
+      <div class="checklist-header priority-2">🟧 DO SOON</div>
+      <div id="checklist-list-2"></div>
+    </div>
+    <div id="checklist-p3" class="checklist-section">
+      <div class="checklist-header priority-3">🟨 DO NEXT</div>
+      <div id="checklist-list-3"></div>
+    </div>
+    <div id="checklist-p4" class="checklist-section">
+      <div class="checklist-header priority-4">🟩 ONGOING</div>
+      <div id="checklist-list-4"></div>
+    </div>
+  </div>
+
+  <!-- Tab: Vitals -->
+  <div id="vtab-vitals" class="vtab">
+    <!-- Summary card -->
+    <div class="card">
+      <div class="grid-3">
+        <div class="stat">
+          <div id="vitals-mpg" class="val" style="font-size:22px;">–</div>
+          <div class="lbl">Latest MPG</div>
+        </div>
+        <div class="stat">
+          <div id="vitals-odo" class="val" style="font-size:22px;">–</div>
+          <div class="lbl">Odometer</div>
+        </div>
+        <div class="stat">
+          <div id="vitals-temp" class="val" style="font-size:22px;">–</div>
+          <div class="lbl">Trans °F</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick-add form -->
+    <div class="card">
+      <h2>Log Vitals</h2>
+      <form id="vitals-form">
+        <div class="grid-2" style="gap:10px;margin-bottom:14px;">
+          <div class="field mb0">
+            <label>Date</label>
+            <input type="date" id="vt-date" required />
+          </div>
+          <div class="field mb0">
+            <label>Odometer</label>
+            <input type="number" id="vt-odo" placeholder="miles" min="0" inputmode="numeric" required />
+          </div>
+        </div>
+        <div class="grid-2" style="gap:10px;margin-bottom:14px;">
+          <div class="field mb0">
+            <label>Gallons (optional)</label>
+            <input type="number" id="vt-gallons" placeholder="0.0" step="0.01" min="0" inputmode="decimal" />
+          </div>
+          <div class="field mb0">
+            <label>Trans Temp °F (opt)</label>
+            <input type="number" id="vt-temp" placeholder="–" min="0" inputmode="numeric" />
+          </div>
+        </div>
+        <div id="vt-mpg-preview" class="text-muted text-sm" style="margin-bottom:10px;min-height:18px;"></div>
+        <div class="field">
+          <label>Notes (optional)</label>
+          <input type="text" id="vt-notes" placeholder="Any observations…" />
+        </div>
+        <button type="submit" class="btn btn-primary" id="vitals-submit">Log Vitals</button>
+      </form>
+    </div>
+
+    <!-- History -->
+    <div class="card">
+      <h2>Last 10 Entries</h2>
+      <div id="vitals-list"><div class="empty">No vitals logged yet.</div></div>
+    </div>
+  </div>
+
+  <!-- Tab: Maintenance -->
+  <div id="vtab-maintenance" class="vtab">
+    <!-- Quick-add form -->
+    <div class="card">
+      <h2>Log Maintenance</h2>
+      <form id="maint-form">
+        <div class="grid-2" style="gap:10px;margin-bottom:14px;">
+          <div class="field mb0">
+            <label>Date</label>
+            <input type="date" id="mt-date" required />
+          </div>
+          <div class="field mb0">
+            <label>Mileage</label>
+            <input type="number" id="mt-mileage" placeholder="miles" min="0" inputmode="numeric" required />
+          </div>
+        </div>
+        <div class="field">
+          <label>Task</label>
+          <input type="text" id="mt-task" placeholder="What was done?" required />
+        </div>
+        <div class="field">
+          <label>Cost ($) optional</label>
+          <input type="number" id="mt-cost" placeholder="0.00" step="0.01" min="0" inputmode="decimal" />
+        </div>
+        <div class="field">
+          <label>Notes (optional)</label>
+          <input type="text" id="mt-notes" placeholder="Parts, shop, etc." />
+        </div>
+        <button type="submit" class="btn btn-primary" id="maint-submit">Add Entry</button>
+      </form>
+    </div>
+
+    <!-- Summary + history -->
+    <div class="card">
+      <div class="flex-between" style="margin-bottom:12px;">
+        <h2 class="mb0">History</h2>
+        <span class="bold text-green" id="maint-total" style="font-size:16px;">$0.00 total</span>
+      </div>
+      <div id="maint-list"><div class="empty">No maintenance logged yet.</div></div>
+    </div>
+  </div>
+</div><!-- /screen-vehicle -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SCREEN: ADVENTURES
+     ════════════════════════════════════════════════════════════════════════ -->
+<div id="screen-adventures" class="screen">
+  <div class="page-title">
+    <h1>Adventures</h1>
+  </div>
+
+  <!-- Stats bar -->
+  <div class="grid-2" style="margin-bottom:0;">
+    <div class="card stat">
+      <div id="adv-total-count" class="val" style="font-size:26px;">0</div>
+      <div class="lbl">Adventures</div>
+    </div>
+    <div class="card stat">
+      <div id="adv-total-xp" class="val" style="font-size:26px;">0</div>
+      <div class="lbl">XP Earned</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card stat">
+      <div id="adv-total-miles" class="val" style="font-size:26px;">0</div>
+      <div class="lbl">Miles Covered</div>
+    </div>
+    <div class="card stat">
+      <div id="adv-total-states" class="val" style="font-size:26px;">0</div>
+      <div class="lbl">States Visited</div>
+    </div>
+  </div>
+
+  <!-- Add form (collapsible) -->
+  <div class="card">
+    <div class="flex-between" style="cursor:pointer;" onclick="toggleAdvForm()">
+      <h2 class="mb0">Log Adventure</h2>
+      <span id="adv-form-toggle" style="color:var(--accent2);font-size:20px;">＋</span>
+    </div>
+    <form id="adv-form" style="display:none;margin-top:14px;">
+      <div class="grid-2" style="gap:10px;margin-bottom:14px;">
+        <div class="field mb0">
+          <label>Date</label>
+          <input type="date" id="adv-date" required />
+        </div>
+        <div class="field mb0">
+          <label>Type</label>
+          <select id="adv-type">
+            <option value="Hike">Hike</option>
+            <option value="Trail">Trail</option>
+            <option value="State Park">State Park</option>
+            <option value="Road Trip">Road Trip</option>
+            <option value="Event">Event</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Title</label>
+        <input type="text" id="adv-title" placeholder="Name this adventure" required />
+      </div>
+      <div class="grid-2" style="gap:10px;margin-bottom:14px;">
+        <div class="field mb0">
+          <label>Location</label>
+          <input type="text" id="adv-location" placeholder="Trail name, park, etc." required />
+        </div>
+        <div class="field mb0">
+          <label>State (2-letter)</label>
+          <input type="text" id="adv-state" placeholder="PA" maxlength="2" style="text-transform:uppercase;" />
+        </div>
+      </div>
+      <div class="grid-3" style="gap:10px;margin-bottom:14px;">
+        <div class="field mb0">
+          <label>Miles (opt)</label>
+          <input type="number" id="adv-distance" placeholder="0.0" step="0.1" min="0" inputmode="decimal" />
+        </div>
+        <div class="field mb0">
+          <label>Duration min (opt)</label>
+          <input type="number" id="adv-duration" placeholder="–" min="0" inputmode="numeric" />
+        </div>
+        <div class="field mb0">
+          <label>Elev ft (opt)</label>
+          <input type="number" id="adv-elevation" placeholder="–" min="0" inputmode="numeric" />
+        </div>
+      </div>
+      <div class="grid-2" style="gap:10px;margin-bottom:14px;">
+        <div class="field mb0">
+          <label>Difficulty (opt)</label>
+          <select id="adv-difficulty">
+            <option value="">—</option>
+            <option value="Easy">Easy</option>
+            <option value="Moderate">Moderate</option>
+            <option value="Hard">Hard</option>
+          </select>
+        </div>
+        <div class="field mb0">
+          <label>Rating</label>
+          <div id="adv-stars" class="star-row">
+            <span class="star" data-val="1">★</span>
+            <span class="star" data-val="2">★</span>
+            <span class="star" data-val="3">★</span>
+            <span class="star" data-val="4">★</span>
+            <span class="star" data-val="5">★</span>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Notes (optional)</label>
+        <textarea id="adv-notes" placeholder="What made it memorable?" rows="2"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary" id="adv-submit">Log Adventure</button>
+    </form>
+  </div>
+
+  <!-- Adventure feed -->
+  <div id="adv-list"><div class="empty">No adventures logged yet.</div></div>
+</div><!-- /screen-adventures -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SCREEN: ACTIVITY  (HOME nav)
+     ════════════════════════════════════════════════════════════════════════ -->
+<div id="screen-activity" class="screen">
+  <div class="page-title"><h1>Activity</h1></div>
+
+  <div class="card">
+    <form id="activity-form">
+      <div class="field">
+        <label>Type</label>
+        <div class="toggle-group" id="act-type-group">
+          <button type="button" class="toggle-btn" data-val="Run"   onclick="actSelectType('Run',this)">Run</button>
+          <button type="button" class="toggle-btn" data-val="Walk"  onclick="actSelectType('Walk',this)">Walk</button>
+          <button type="button" class="toggle-btn" data-val="Lift"  onclick="actSelectType('Lift',this)">Lift</button>
+          <button type="button" class="toggle-btn" data-val="Other" onclick="actSelectType('Other',this)">Other</button>
+        </div>
+      </div>
+      <div class="field mb0">
+        <label>Duration (min)</label>
+        <input type="number" id="act-duration" placeholder="0" min="0" inputmode="numeric" />
+      </div>
+
+      <div class="expand-trigger" onclick="toggleExpand(this)">
+        <span class="expand-label">▼ Add detail</span>
+      </div>
+      <div class="expand-body">
+        <div class="field mt8">
+          <label>Distance (km)</label>
+          <input type="number" id="act-distance" placeholder="0.0" step="0.1" min="0" inputmode="decimal" />
+        </div>
+        <div class="field">
+          <label>Intensity</label>
+          <div class="toggle-group" id="act-intensity-group">
+            <button type="button" class="toggle-btn" data-val="Recovery" onclick="actSelectIntensity('Recovery',this)">Recovery</button>
+            <button type="button" class="toggle-btn" data-val="Build"    onclick="actSelectIntensity('Build',this)">Build</button>
+            <button type="button" class="toggle-btn" data-val="Push"     onclick="actSelectIntensity('Push',this)">Push</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Heart Rate (bpm, optional)</label>
+          <input type="number" id="act-hr" placeholder="–" min="0" inputmode="numeric" />
+        </div>
+        <div class="field">
+          <label>Notes (optional)</label>
+          <input type="text" id="act-notes" placeholder="How'd it feel?" />
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary mt8" id="act-submit">Log Activity</button>
+    </form>
+  </div>
+</div><!-- /screen-activity -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SCREEN: TRAVEL  (HOME nav)
+     ════════════════════════════════════════════════════════════════════════ -->
+<div id="screen-travel" class="screen">
+  <div class="page-title"><h1>Travel</h1></div>
+
+  <div class="card">
+    <form id="travel-form">
+      <div class="field">
+        <label>Destination</label>
+        <input type="text" id="tv-destination" placeholder="Where?" required inputmode="text" autocomplete="off" />
+      </div>
+      <div class="field mb0">
+        <label>Purpose</label>
+        <div class="toggle-group" id="tv-purpose-group">
+          <button type="button" class="toggle-btn" data-val="work"     onclick="tvSelectPurpose('work',this)">Work</button>
+          <button type="button" class="toggle-btn" data-val="personal" onclick="tvSelectPurpose('personal',this)">Personal</button>
+        </div>
+      </div>
+
+      <div class="expand-trigger" onclick="toggleExpand(this)">
+        <span class="expand-label">▼ Add detail</span>
+      </div>
+      <div class="expand-body">
+        <div class="field mt8">
+          <label>Miles</label>
+          <input type="number" id="tv-miles" placeholder="0" step="0.1" min="0" inputmode="decimal" />
+        </div>
+        <div class="field">
+          <label>Reimbursable</label>
+          <div class="toggle-group">
+            <button type="button" class="toggle-btn" id="tv-reimb-yes" onclick="tvSelectReimb(1,this)">YES</button>
+            <button type="button" class="toggle-btn" id="tv-reimb-no"  onclick="tvSelectReimb(0,this)">NO</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Notes (optional)</label>
+          <input type="text" id="tv-notes" placeholder="Optional note" />
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary mt8" id="tv-submit">Log Trip</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Recent Trips</h2>
+    <div id="travel-list"><div class="empty">No trips logged yet.</div></div>
+  </div>
+</div><!-- /screen-travel -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SCREEN: HABITS  (HOME nav)
+     ════════════════════════════════════════════════════════════════════════ -->
+<div id="screen-habits" class="screen">
+  <div class="page-title">
+    <h1>Habits</h1>
+    <small id="habits-date-label"></small>
+  </div>
+
+  <form id="habits-form">
+    <div class="card card-sm auto-block-card">
+      <div class="flex-between" style="margin-bottom:10px;">
+        <h3>Tobacco</h3>
+        <span class="auto-badge">AUTO</span>
+      </div>
+      <div class="block-grid">
+        <div class="block-label">AM</div><div></div>
+        <button type="button" id="ht-am" class="toggle-btn active-no">NO</button>
+      </div>
+      <div class="block-grid">
+        <div class="block-label">PM</div><div></div>
+        <button type="button" id="ht-pm" class="toggle-btn active-no">NO</button>
+      </div>
+      <div class="block-grid">
+        <div class="block-label">EVE</div><div></div>
+        <button type="button" id="ht-eve" class="toggle-btn active-no">NO</button>
+      </div>
+      <div class="auto-hint">Tap Quick Log to update · tap blocks to override</div>
+    </div>
+
+    <div class="card card-sm auto-block-card">
+      <div class="flex-between" style="margin-bottom:10px;">
+        <h3>Weed</h3>
+        <span class="auto-badge">AUTO</span>
+      </div>
+      <div style="margin-bottom:8px;">
+        <div class="block-label" style="text-align:left;margin-bottom:4px;">AM</div>
+        <div class="toggle-group hw-group" id="hw-group-am" data-block="am">
+          <button type="button" class="toggle-btn active-none" data-val="0">NONE</button>
+          <button type="button" class="toggle-btn"             data-val="1">LIGHT</button>
+          <button type="button" class="toggle-btn"             data-val="2">MOD</button>
+          <button type="button" class="toggle-btn"             data-val="3">HEAVY</button>
+        </div>
+      </div>
+      <div style="margin-bottom:8px;">
+        <div class="block-label" style="text-align:left;margin-bottom:4px;">PM</div>
+        <div class="toggle-group hw-group" id="hw-group-pm" data-block="pm">
+          <button type="button" class="toggle-btn active-none" data-val="0">NONE</button>
+          <button type="button" class="toggle-btn"             data-val="1">LIGHT</button>
+          <button type="button" class="toggle-btn"             data-val="2">MOD</button>
+          <button type="button" class="toggle-btn"             data-val="3">HEAVY</button>
+        </div>
+      </div>
+      <div>
+        <div class="block-label" style="text-align:left;margin-bottom:4px;">EVE</div>
+        <div class="toggle-group hw-group" id="hw-group-eve" data-block="eve">
+          <button type="button" class="toggle-btn active-none" data-val="0">NONE</button>
+          <button type="button" class="toggle-btn"             data-val="1">LIGHT</button>
+          <button type="button" class="toggle-btn"             data-val="2">MOD</button>
+          <button type="button" class="toggle-btn"             data-val="3">HEAVY</button>
+        </div>
+      </div>
+      <div class="auto-hint">Tap Quick Log to update · tap blocks to override</div>
+    </div>
+
+    <div class="card card-sm">
+      <h3 style="margin-bottom:10px;">Today's Timeline</h3>
+      <div id="habits-timeline"><div class="empty" style="padding:8px 0;">No logs today</div></div>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt8" id="habits-submit">Save Habits</button>
+  </form>
+</div><!-- /screen-habits -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     SCREEN: MONEY  (HOME nav)
+     ════════════════════════════════════════════════════════════════════════ -->
+<div id="screen-money" class="screen">
+  <div class="page-title"><h1>Money</h1></div>
+
+  <!-- Card 1: Quick Spend -->
+  <div class="card">
+    <h2>Quick Spend</h2>
+    <form id="money-spend-form">
+      <div class="field">
+        <label>Amount ($)</label>
+        <input type="number" id="ms-amount" placeholder="0.00" step="0.01" min="0.01" required inputmode="decimal" />
+      </div>
+      <div class="field mb0">
+        <label>Category</label>
+        <div class="toggle-group" style="flex-wrap:wrap;gap:6px;" id="ms-cat-group">
+          <button type="button" class="toggle-btn" data-val="Food"         onclick="msSelectCat('Food',this)">Food</button>
+          <button type="button" class="toggle-btn" data-val="Gas"          onclick="msSelectCat('Gas',this)">Gas</button>
+          <button type="button" class="toggle-btn" data-val="Wawa"         onclick="msSelectCat('Wawa',this)">Wawa</button>
+          <button type="button" class="toggle-btn" data-val="Subscription" onclick="msSelectCat('Subscription',this)">Sub</button>
+          <button type="button" class="toggle-btn" data-val="Random"       onclick="msSelectCat('Random',this)">Random</button>
+        </div>
+      </div>
+
+      <div class="expand-trigger" onclick="toggleExpand(this)">
+        <span class="expand-label">▼ Add detail</span>
+      </div>
+      <div class="expand-body">
+        <div class="field mt8">
+          <label>Merchant</label>
+          <input type="text" id="ms-merchant" placeholder="Where?" inputmode="text" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label>Notes (optional)</label>
+          <input type="text" id="ms-notes" placeholder="Optional note" />
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary mt8" id="ms-submit">Log Spend</button>
+    </form>
+  </div>
+
+  <!-- Card 2: Freedom Fund -->
+  <div class="card">
+    <div class="flex-between" style="margin-bottom:12px;">
+      <h2 class="mb0">Freedom Fund</h2>
+      <span id="money-ff-total" class="bold text-green" style="font-size:20px;">$0.00</span>
+    </div>
+    <form id="money-ff-form" style="display:flex;gap:8px;">
+      <input type="number" id="money-ff-amount" placeholder="$0.00" step="0.01" min="0.01"
+             inputmode="decimal" style="flex:1;min-width:0;" />
+      <button type="submit" class="btn btn-primary" style="width:auto;padding:0 18px;flex-shrink:0;">ADD</button>
+    </form>
+  </div>
+
+  <!-- Card 3: Debt Boss -->
+  <div class="card">
+    <div class="flex-between" style="margin-bottom:8px;">
+      <h2 class="mb0">Debt Boss</h2>
+      <span class="text-muted text-sm" style="color:var(--red);">$13,913 total</span>
+    </div>
+    <div class="text-muted text-sm" style="margin-bottom:10px;">
+      Settlement target: <span class="bold text-accent">$4,500</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="money-debt-fill" style="width:0%"></div>
+    </div>
+    <div class="progress-label">
+      <span id="money-debt-saved">$0.00 saved</span>
+      <span id="money-debt-pct">0%</span>
+    </div>
+  </div>
+
+  <!-- Card 4: Subscription Killer -->
+  <div class="card">
+    <h2>Subscription Killer</h2>
+    <div id="money-subs-list"><div class="empty">No subscriptions tracked.</div></div>
+  </div>
+</div><!-- /screen-money -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     BOTTOM NAV  — hidden; kept for JS compat
+     ════════════════════════════════════════════════════════════════════════ -->
+<nav id="nav"></nav>
+
+<script src="/static/js/app.js"></script>
+<script>
+  const d = new Date();
+  document.getElementById("log-date-label").textContent =
+    d.toLocaleDateString("en-US", { weekday:"long", month:"short", day:"numeric" });
+  document.getElementById("habits-date-label").textContent =
+    d.toLocaleDateString("en-US", { weekday:"long", month:"short", day:"numeric" });
+  document.getElementById("ff-date").value   = d.toISOString().slice(0,10);
+  document.getElementById("w-date").value    = d.toISOString().slice(0,10);
+  document.getElementById("vt-date").value   = d.toISOString().slice(0,10);
+  document.getElementById("mt-date").value   = d.toISOString().slice(0,10);
+  document.getElementById("adv-date").value  = d.toISOString().slice(0,10);
+  document.getElementById("wc-date").value   = d.toISOString().slice(0,10);
+</script>
+</body>
+</html>
