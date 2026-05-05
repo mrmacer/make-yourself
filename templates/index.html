@@ -27,10 +27,13 @@
 <!-- ── Toast ─────────────────────────────────────────────────────────────── -->
 <div id="toast"></div>
 
-<!-- ── Mode Pill Switcher ─────────────────────────────────────────────────── -->
+<!-- ── Global Control Strip ────────────────────────────────────────────────── -->
 <div id="mode-switcher">
-  <button id="mode-home" class="mode-pill active-pill" onclick="setMode('home')">HOME</button>
-  <button id="mode-work" class="mode-pill" onclick="setMode('work')">WORK</button>
+  <input type="date" id="global-date" class="global-date-input" />
+  <div class="mode-pill-row">
+    <button id="mode-home" class="mode-pill active-pill" onclick="setMode('home')">HOME</button>
+    <button id="mode-work" class="mode-pill" onclick="setMode('work')">WORK</button>
+  </div>
 </div>
 
 
@@ -38,45 +41,21 @@
      SCREEN: HOME  (Quick Log)
      ════════════════════════════════════════════════════════════════════════ -->
 <div id="screen-home" class="screen active">
-  <div class="home-header">
-    <div class="home-title">Make Yourself</div>
-    <div class="home-subtitle">Tap once. Log the moment.</div>
-  </div>
 
-  <div class="tap-stack">
-    <button class="tap-btn tap-tobacco" onclick="quickLog('tobacco')">
-      <span class="tap-emoji">🚬</span>
-      <span class="tap-label">Tobacco</span>
+  <!-- Quick action emoji buttons -->
+  <div class="quick-row">
+    <button class="quick-btn tap-tobacco" onclick="quickLog('tobacco')" aria-label="Tobacco">
+      <span class="quick-emoji">🚬</span>
     </button>
-    <button class="tap-btn tap-weed" onclick="quickLog('weed')">
-      <span class="tap-emoji">🌿</span>
-      <span class="tap-label">Weed</span>
+    <button class="quick-btn tap-weed" onclick="quickLog('weed')" aria-label="Weed">
+      <span class="quick-emoji">🌿</span>
     </button>
-    <button class="tap-btn tap-drink" onclick="quickLog('drink')">
-      <span class="tap-emoji">🍺</span>
-      <span class="tap-label">Drink</span>
+    <button class="quick-btn tap-drink" onclick="quickLog('drink')" aria-label="Drink">
+      <span class="quick-emoji">🍺</span>
     </button>
   </div>
 
-  <div class="card" style="margin-top:4px;">
-    <h3 style="margin-bottom:12px;">Today</h3>
-    <div class="today-counts">
-      <div class="count-cell">
-        <div id="count-tobacco" class="count-num">0</div>
-        <div class="count-lbl">tobacco</div>
-      </div>
-      <div class="count-cell">
-        <div id="count-weed" class="count-num">0</div>
-        <div class="count-lbl">weed</div>
-      </div>
-      <div class="count-cell">
-        <div id="count-drink" class="count-num">0</div>
-        <div class="count-lbl">drinks</div>
-      </div>
-    </div>
-    <div id="last-logged" class="last-logged"></div>
-  </div>
-
+  <!-- Home Tools -->
   <div class="home-tools-label">HOME TOOLS</div>
   <div class="tools-grid">
     <button class="tool-card" onclick="nav('money')">
@@ -99,11 +78,22 @@
       <span class="tool-emoji">🧾</span>
       <span class="tool-name">Subscriptions</span>
     </button>
-    <button class="tool-card" onclick="nav('dashboard')">
-      <span class="tool-emoji">📊</span>
-      <span class="tool-name">Dashboard</span>
-    </button>
   </div>
+
+  <!-- Dashboard link -->
+  <button class="btn btn-ghost w100" onclick="nav('dashboard')" style="margin-bottom:14px;">
+    📊 Dashboard / Review
+  </button>
+
+  <!-- Compact today scoreboard -->
+  <div class="today-mini">
+    <span class="today-mini-label">Today</span>
+    <span class="today-mini-item">🚬&nbsp;<span id="count-tobacco">0</span></span>
+    <span class="today-mini-item">🌿&nbsp;<span id="count-weed">0</span></span>
+    <span class="today-mini-item">🍺&nbsp;<span id="count-drink">0</span></span>
+  </div>
+  <div id="last-logged" style="font-size:11px;color:var(--text2);text-align:center;padding:4px 0 8px;min-height:14px;"></div>
+
 </div><!-- /screen-home -->
 
 
@@ -791,6 +781,22 @@
       <div id="wc-subs" class="sub-chips" style="display:none;"></div>
     </div>
 
+    <!-- STEM / SOW Area -->
+    <div class="field" style="margin-top:12px;">
+      <label>STEM / SOW Area</label>
+      <select id="wc-stem-area" onchange="wcSaveDraft()">
+        <option value="">— Select area —</option>
+        <option value="A. STEM POC / Workgroup Meetings">A. STEM POC / Workgroup Meetings</option>
+        <option value="B. STEELS Standards Support">B. STEELS Standards Support</option>
+        <option value="C. Computer Science / Computational Thinking">C. Computer Science / Computational Thinking</option>
+        <option value="D. Student-Centered Learning / Cross-Curricular STEM">D. Student-Centered Learning / Cross-Curricular STEM</option>
+        <option value="E. STEM Ecosystems / Partnerships">E. STEM Ecosystems / Partnerships</option>
+        <option value="F. Student Competitions">F. Student Competitions</option>
+        <option value="G. Admin / Compliance / Reporting">G. Admin / Compliance / Reporting</option>
+        <option value="H. Other">H. Other</option>
+      </select>
+    </div>
+
     <!-- Note -->
     <div class="field" style="margin-top:14px;">
       <label>Note <span style="color:var(--red)">*</span></label>
@@ -810,19 +816,6 @@
         <button type="button" class="wc-sel-btn" data-field="priority" data-val="🔴 High" onclick="wcSelect('priority','🔴 High',this)">🔴 High</button>
         <button type="button" class="wc-sel-btn" data-field="priority" data-val="🟡 Medium" onclick="wcSelect('priority','🟡 Medium',this)">🟡 Medium</button>
         <button type="button" class="wc-sel-btn" data-field="priority" data-val="🟢 Low" onclick="wcSelect('priority','🟢 Low',this)">🟢 Low</button>
-      </div>
-
-      <!-- Mood -->
-      <div class="wc-section-label">Mood</div>
-      <div class="wc-selector-row" id="wc-mood-row">
-        <button type="button" class="wc-sel-btn" onclick="wcSelect('mood','🔥 Fired up',this)">🔥 Fired up</button>
-        <button type="button" class="wc-sel-btn" onclick="wcSelect('mood','😎 Locked in',this)">😎 Locked in</button>
-        <button type="button" class="wc-sel-btn" onclick="wcSelect('mood','🚀 In flow',this)">🚀 In flow</button>
-        <button type="button" class="wc-sel-btn" onclick="wcSelect('mood','😌 Steady',this)">😌 Steady</button>
-        <button type="button" class="wc-sel-btn" onclick="wcSelect('mood','🤔 Thinking',this)">🤔 Thinking</button>
-        <button type="button" class="wc-sel-btn" onclick="wcSelect('mood','😤 Frustrated',this)">😤 Frustrated</button>
-        <button type="button" class="wc-sel-btn" onclick="wcSelect('mood','😴 Drained',this)">😴 Drained</button>
-        <button type="button" class="wc-sel-btn" onclick="wcSelect('mood','😵 Overwhelmed',this)">😵 Overwhelmed</button>
       </div>
 
       <!-- Reflection type -->
@@ -1195,6 +1188,7 @@
 
   <div class="card">
     <form id="travel-form">
+      <div class="travel-date-notice">Logging for: <span id="tv-date-display"></span></div>
       <div class="field">
         <label>Destination</label>
         <input type="text" id="tv-destination" placeholder="Where?" required inputmode="text" autocomplete="off" />
@@ -1404,16 +1398,18 @@
 <script src="/static/js/app.js"></script>
 <script>
   const d = new Date();
+  const todayStr = d.toISOString().slice(0,10);
+  document.getElementById("global-date").value = todayStr;
   document.getElementById("log-date-label").textContent =
     d.toLocaleDateString("en-US", { weekday:"long", month:"short", day:"numeric" });
   document.getElementById("habits-date-label").textContent =
     d.toLocaleDateString("en-US", { weekday:"long", month:"short", day:"numeric" });
-  document.getElementById("ff-date").value   = d.toISOString().slice(0,10);
-  document.getElementById("w-date").value    = d.toISOString().slice(0,10);
-  document.getElementById("vt-date").value   = d.toISOString().slice(0,10);
-  document.getElementById("mt-date").value   = d.toISOString().slice(0,10);
-  document.getElementById("adv-date").value  = d.toISOString().slice(0,10);
-  document.getElementById("wc-date").value   = d.toISOString().slice(0,10);
+  document.getElementById("ff-date").value   = todayStr;
+  document.getElementById("w-date").value    = todayStr;
+  document.getElementById("vt-date").value   = todayStr;
+  document.getElementById("mt-date").value   = todayStr;
+  document.getElementById("adv-date").value  = todayStr;
+  document.getElementById("wc-date").value   = todayStr;
 </script>
 </body>
 </html>

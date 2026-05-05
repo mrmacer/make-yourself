@@ -8,12 +8,26 @@
 let settings = {};
 let currentScreen = "home";
 let appMode = "home";
+let selectedDate = new Date().toISOString().slice(0, 10);
 
 // ── Nav config — both modes use no bottom nav; nav element is hidden ──────────
 const NAV_CONFIGS = { work: [], home: [] };
 
 // ── Home tool screens — get a "← Home" back button when accessed in HOME mode ─
 const HOME_TOOL_SCREENS = new Set(["money", "travel", "movement", "vehicle", "subs", "dashboard"]);
+
+// ── Global date helpers ───────────────────────────────────────────────────────
+function getSelectedDate() {
+  return document.getElementById("global-date")?.value || today();
+}
+
+function syncFormDates() {
+  const d = getSelectedDate();
+  ["ff-date", "w-date", "vt-date", "mt-date", "adv-date", "wc-date"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = d;
+  });
+}
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", async () => {
@@ -22,6 +36,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   settings = await api("/api/settings");
+
+  const gdInput = document.getElementById("global-date");
+  if (gdInput) {
+    gdInput.addEventListener("change", () => {
+      selectedDate = gdInput.value || today();
+      syncFormDates();
+      if (currentScreen === "home")    loadHome();
+      if (currentScreen === "travel")  loadTravel();
+      if (currentScreen === "capture") {
+        const wcDate = document.getElementById("wc-date");
+        if (wcDate) wcDate.value = selectedDate;
+      }
+    });
+  }
 
   appMode = localStorage.getItem("app_mode") || "home";
   document.getElementById("mode-home").classList.toggle("active-pill", appMode === "home");
@@ -38,6 +66,10 @@ function setMode(mode) {
   document.getElementById("mode-work").classList.toggle("active-pill", mode === "work");
   removeHomeBack();
   renderNav(mode);
+  if (mode === "work") {
+    const wcDate = document.getElementById("wc-date");
+    if (wcDate) wcDate.value = getSelectedDate();
+  }
   nav(mode === "work" ? "capture" : "home");
 }
 
@@ -1406,13 +1438,13 @@ function wcSaveDraft() {
     const draft = {
       date:      document.getElementById("wc-date")?.value,
       note:      document.getElementById("wc-note")?.value,
+      stemArea:  document.getElementById("wc-stem-area")?.value,
       energy:    document.getElementById("wc-energy")?.value,
       progress:  document.getElementById("wc-progress")?.value,
       load:      document.getElementById("wc-load")?.value,
       orbitId:   wcState.orbitId,
       subName:   wcState.subName,
       priority:  wcState.priority,
-      mood:      wcState.mood,
       reflType:  wcState.reflType,
       sowTags:   wcState.sowTags,
       peopleTags: wcState.peopleTags,
@@ -1438,6 +1470,10 @@ function restoreWcDraft() {
   const draft = JSON.parse(raw);
   if (draft.date) document.getElementById("wc-date").value = draft.date;
   if (draft.note) document.getElementById("wc-note").value = draft.note;
+  if (draft.stemArea) {
+    const stemEl = document.getElementById("wc-stem-area");
+    if (stemEl) stemEl.value = draft.stemArea;
+  }
   if (draft.energy) { document.getElementById("wc-energy").value = draft.energy; document.getElementById("wc-energy-val").textContent = draft.energy; }
   if (draft.progress) { document.getElementById("wc-progress").value = draft.progress; document.getElementById("wc-progress-val").textContent = draft.progress; }
   if (draft.load) { document.getElementById("wc-load").value = draft.load; document.getElementById("wc-load-val").textContent = draft.load; }
@@ -1445,7 +1481,6 @@ function restoreWcDraft() {
   wcState.orbitId    = draft.orbitId || null;
   wcState.subName    = draft.subName || null;
   wcState.priority   = draft.priority || null;
-  wcState.mood       = draft.mood || null;
   wcState.reflType   = draft.reflType || null;
   wcState.sowTags    = draft.sowTags || [];
   wcState.peopleTags = draft.peopleTags || [];
@@ -1466,7 +1501,6 @@ function restoreWcDraft() {
   }
 
   if (wcState.priority) document.querySelector(`.wc-sel-btn[onclick*="${CSS.escape(wcState.priority)}"]`)?.classList.add("active");
-  if (wcState.mood) document.querySelector(`.wc-sel-btn[onclick*="${CSS.escape(wcState.mood)}"]`)?.classList.add("active");
   if (wcState.reflType) document.querySelector(`.wc-sel-btn[onclick*="${CSS.escape(wcState.reflType)}"]`)?.classList.add("active");
 
   renderSowTags();
@@ -1485,8 +1519,9 @@ document.getElementById("wc-note")?.addEventListener("input", wcSaveDraft);
 document.getElementById("wc-date")?.addEventListener("change", wcSaveDraft);
 
 async function submitWorkCapture() {
-  const dateVal = document.getElementById("wc-date")?.value || today();
-  const note    = document.getElementById("wc-note")?.value?.trim();
+  const dateVal  = document.getElementById("wc-date")?.value || getSelectedDate();
+  const note     = document.getElementById("wc-note")?.value?.trim();
+  const stemArea = document.getElementById("wc-stem-area")?.value || null;
 
   if (!wcState.orbitId) { toast("Pick a category first"); return; }
   if (!note) { toast("Add a note before logging"); return; }
@@ -1498,8 +1533,8 @@ async function submitWorkCapture() {
   const load     = document.getElementById("wc-load")?.value;
 
   const lines = [note];
+  if (stemArea)                  lines.push(`[stem-sow: ${stemArea}]`);
   if (wcState.priority)          lines.push(`[priority: ${wcState.priority}]`);
-  if (wcState.mood)              lines.push(`[mood: ${wcState.mood}]`);
   if (wcState.reflType)          lines.push(`[type: ${wcState.reflType}]`);
   if (wcState.peopleTags.length) lines.push(`[tags: ${wcState.peopleTags.join(", ")}]`);
   if (wcState.sowTags.length)    lines.push(`[sow: ${wcState.sowTags.join(", ")}]`);
@@ -1509,6 +1544,10 @@ async function submitWorkCapture() {
   const btn = document.getElementById("wc-submit");
   btn.disabled = true;
   btn.textContent = "Logging…";
+
+  const sowAll = stemArea
+    ? [stemArea, ...wcState.sowTags].filter(Boolean)
+    : wcState.sowTags;
 
   const payload = {
     date: dateVal,
@@ -1522,10 +1561,10 @@ async function submitWorkCapture() {
     reflection_type: wcState.reflType,
     note: enrichedNote,
     priority: wcState.priority,
-    mood: wcState.mood,
+    mood: null,
     energy, progress,
     load_complexity: load,
-    sow_tags: wcState.sowTags.join(", ") || null,
+    sow_tags: sowAll.join(", ") || null,
     people_tags: wcState.peopleTags.join(", ") || null,
     synced: 0,
   };
@@ -1563,6 +1602,8 @@ async function submitWorkCapture() {
   }, 2500);
 
   document.getElementById("wc-note").value = "";
+  const stemEl = document.getElementById("wc-stem-area");
+  if (stemEl) stemEl.value = "";
   wcState.subName = null;
   document.querySelectorAll("#wc-subs .sub-chip").forEach(c => c.classList.remove("active"));
 
@@ -1667,6 +1708,10 @@ function tvSelectReimb(val, btn) {
 }
 
 async function loadTravel() {
+  const d = getSelectedDate();
+  const display = new Date(d + "T12:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  setEl("tv-date-display", display);
+
   const data = await api("/api/travel");
   const list = document.getElementById("travel-list");
   if (!list) return;
@@ -1697,7 +1742,7 @@ document.getElementById("travel-form")?.addEventListener("submit", async e => {
   btn.textContent = "Logging…";
 
   await api("/api/travel", "POST", {
-    date:        today(),
+    date:        getSelectedDate(),
     destination: document.getElementById("tv-destination").value.trim(),
     purpose:     tvPurpose || null,
     miles:       document.getElementById("tv-miles").value || null,
@@ -1875,6 +1920,7 @@ document.getElementById("money-spend-form")?.addEventListener("submit", async e 
   btn.textContent = "Logging…";
 
   await api("/api/spending", "POST", {
+    date:     getSelectedDate(),
     amount:   parseFloat(document.getElementById("ms-amount").value),
     category: msCategory || "Random",
     merchant: document.getElementById("ms-merchant").value.trim() || "Unknown",
@@ -1899,7 +1945,7 @@ document.getElementById("money-ff-form")?.addEventListener("submit", async e => 
   if (!amount || amount <= 0) return;
 
   await api("/api/freedom-fund", "POST", {
-    date:   today(),
+    date:   getSelectedDate(),
     source: "Manual deposit",
     amount,
     notes:  null,
@@ -1916,7 +1962,7 @@ document.getElementById("money-ff-form")?.addEventListener("submit", async e => 
 // ══════════════════════════════════════════════════════════════════════════════
 
 async function loadHome() {
-  const data = await api(`/api/quick-log?date=${today()}`);
+  const data = await api(`/api/quick-log?date=${getSelectedDate()}`);
   const counts = data.counts || {};
   setEl("count-tobacco", counts.tobacco || 0);
   setEl("count-weed",    counts.weed    || 0);
@@ -1933,10 +1979,12 @@ async function loadHome() {
   }
 }
 
+const QUICK_LOG_MSGS = ["Logged.", "Captured.", "Done.", "Make Yourself."];
+
 async function quickLog(type) {
   const now       = new Date();
   const timestamp = now.toISOString().slice(0, 19).replace("T", " ");
-  const dateStr   = now.toISOString().slice(0, 10);
+  const dateStr   = getSelectedDate();
 
   const btn = document.querySelector(`.tap-${type}`);
   if (btn) {
@@ -1949,8 +1997,7 @@ async function quickLog(type) {
   });
 
   if (result.ok) {
-    const time = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
-    toast(`Logged at ${time}`);
+    toast(QUICK_LOG_MSGS[Math.floor(Math.random() * QUICK_LOG_MSGS.length)]);
     loadHome();
   }
 }

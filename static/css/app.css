@@ -741,7 +741,7 @@ input[type="range"] {
 .btn-success { background: var(--green) !important; }
 .mb4 { margin-bottom: 4px; }
 
-/* ── Mode Pill Switcher ──────────────────────────────────────────────────── */
+/* ── Global Control Strip (date + mode pills) ───────────────────────────── */
 #mode-switcher {
   position: fixed;
   top: 0;
@@ -749,16 +749,32 @@ input[type="range"] {
   right: 0;
   z-index: 90;
   display: flex;
-  justify-content: center;
-  gap: 10px;
-  padding: calc(env(safe-area-inset-top) + 8px) 24px 8px;
+  flex-direction: column;
+  gap: 8px;
+  padding: calc(env(safe-area-inset-top) + 8px) 16px 8px;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
 }
 
+.global-date-input {
+  min-height: 36px !important;
+  background: var(--bg2) !important;
+  border-radius: 99px !important;
+  padding: 0 14px !important;
+  font-size: 13px !important;
+  text-align: center;
+  color: var(--text2) !important;
+  cursor: pointer;
+}
+.global-date-input:focus { border-color: var(--accent) !important; }
+
+.mode-pill-row {
+  display: flex;
+  gap: 10px;
+}
+
 .mode-pill {
   flex: 1;
-  max-width: 180px;
   min-height: 36px;
   border-radius: 99px;
   border: 2px solid var(--border);
@@ -778,10 +794,9 @@ input[type="range"] {
   color: #fff;
 }
 
-/* ── Screen top padding now accounts for mode switcher bar ──────────────── */
-/* overrides the original calc(16px + env(safe-area-inset-top)) */
+/* ── Screen top padding now accounts for two-row control strip ──────────── */
 .screen {
-  padding-top: calc(70px + env(safe-area-inset-top)) !important;
+  padding-top: calc(108px + env(safe-area-inset-top)) !important;
 }
 
 /* ── Nav buttons fill evenly with 4 items ───────────────────────────────── */
@@ -997,3 +1012,70 @@ input[type="range"] {
   flex: 1;
 }
 .install-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+/* ── Compact quick-log emoji buttons (UPDATE 3) ─────────────────────────── */
+.quick-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.quick-btn {
+  flex: 1;
+  min-height: 72px;
+  border-radius: var(--radius);
+  border: 2px solid transparent;
+  font-family: var(--font);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .1s, opacity .1s;
+}
+.quick-btn:active { transform: scale(.93); opacity: .85; }
+
+@keyframes tapPulse {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(.90); filter: brightness(1.3); }
+  100% { transform: scale(1); }
+}
+.tap-pressed { animation: tapPulse 260ms ease forwards !important; }
+
+.quick-emoji { font-size: 32px; line-height: 1; pointer-events: none; }
+
+/* ── Compact today scoreboard (UPDATE 4) ────────────────────────────────── */
+.today-mini {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 16px;
+  margin-bottom: 6px;
+}
+.today-mini-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  flex-shrink: 0;
+}
+.today-mini-item {
+  font-size: 15px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ── Travel date notice (UPDATE 6) ─────────────────────────────────────── */
+.travel-date-notice {
+  font-size: 12px;
+  color: var(--text2);
+  margin-bottom: 14px;
+  padding: 7px 12px;
+  background: var(--bg3);
+  border-radius: var(--radius-sm);
+}
+.travel-date-notice span { color: var(--accent2); font-weight: 600; }
